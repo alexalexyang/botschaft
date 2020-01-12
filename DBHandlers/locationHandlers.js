@@ -1,21 +1,25 @@
 const axios = require("axios");
 
 async function getCurrentLocation(conn, botID) {
-  let collection = conn.db("botschaft").collection("travel_history");
-
-  let bot = await collection
-    .find({ botID: botID })
-    .sort({ _id: -1 })
-    .limit(1)
-    .next()
-    .then(bot => {
-      return bot;
+  let payload = `query {getCurrentLocation(botID: "${botID}") }`;
+  let result = await axios
+    .post(process.env.BACKEND_API, {
+      query: payload
     })
-    .catch(err => console.error(err));
-  if (bot) {
-    return [300, bot.lat, bot.lng];
+    .then(function(response) {
+      console.log(response.status);
+      return response;
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
+
+  if (result) {
+    const { getCurrentLocation } = result.data.data;
+    return getCurrentLocation;
   }
 
+  // Not sure I want to do this as it may reveal owner's home.
   collection = conn.db("botschaft").collection("bots");
   bot = await collection
     .findOne({ botID: botID })
@@ -23,6 +27,7 @@ async function getCurrentLocation(conn, botID) {
       return bot;
     })
     .catch(err => console.error(err));
+  console.log("Location not found, returning home location.");
   return [300, bot.home.lat, bot.home.lng];
 }
 
@@ -62,7 +67,7 @@ async function savePossibleLocations(conn, botID, POIs) {
   let payload = `mutation {addPossibleLocations(botID: "${botID}",pois: "${pois}") {botID, pois}}`;
 
   axios
-    .post("https://8001.notathoughtexperiment.me/graphql", {
+    .post(process.env.BACKEND_API, {
       query: payload
     })
     .then(function(response) {

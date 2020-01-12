@@ -7,6 +7,7 @@ const Schema = gql`
     bot(botID: ID!): Bot
     bots: [Bot]!
     possibleLocations: PossibleLocations!
+    getCurrentLocation(botID: ID!): [Float!]
   }
 
   type Mutation {
@@ -23,6 +24,10 @@ const Schema = gql`
   type PossibleLocations {
     botID: ID!
     pois: String!
+  }
+
+  type Subscription {
+    gotCurrentLocation: [Float!]
   }
 `;
 

@@ -1,4 +1,11 @@
 const { client } = require("../DBHandlers/DBClient");
+const { PubSub } = require("apollo-server");
+
+const pubsub = new PubSub();
+
+const EVENTS = {
+  gotCurrentLocation: "GOT_CURRENT_LOCATION"
+};
 
 module.exports = {
   Query: {
@@ -16,6 +23,30 @@ module.exports = {
       const bots = await collection.find().toArray();
       conn.close();
       return bots;
+    },
+    getCurrentLocation: async (parent, { botID }) => {
+      let conn = await client;
+      let travelHistoryCollection = conn
+        .db("botschaft")
+        .collection("travel_history");
+
+      let location = await travelHistoryCollection
+        .find({ botID: botID })
+        .sort({ _id: -1 })
+        .limit(1)
+        .next()
+        .then(location => {
+          return location;
+        })
+        .catch(err => console.error(err));
+
+      const result = [300, location.lat, location.lng];
+
+      pubsub.publish(EVENTS.gotCurrentLocation, {
+        gotCurrentLocation: result
+      });
+
+      return result;
     }
   },
 
@@ -28,9 +59,14 @@ module.exports = {
         { $set: { pois: pois } },
         { upsert: true }
       );
-      // pubsub.publish(new_pois, "new pois are in");
       conn.close();
       return { botID: botID, pois: pois };
+    }
+  },
+
+  Subscription: {
+    gotCurrentLocation: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.gotCurrentLocation)
     }
   }
 };

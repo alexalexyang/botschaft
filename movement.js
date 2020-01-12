@@ -56,7 +56,7 @@ async function movementCycle(conn, botID) {
       conn,
       botID
     ).catch(err => console.log(err));
-    // console.log("Got rll: ", radius, lat, lng)
+    console.log("Got current location: ", radius, lat, lng);
     const POIs = await getPOIs(radius, lat, lng, poiKey, poiValue)
       .then(POIs => {
         return POIs;
@@ -70,7 +70,7 @@ async function movementCycle(conn, botID) {
     savePossibleLocations(conn, botID, POIs);
     // console.log("Saved locations")
     console.log("Successful cycle: ", botID, nextLocation.id);
-  }, 8000);
+  }, 9000);
 }
 
 module.exports = {

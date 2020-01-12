@@ -22,7 +22,7 @@ async function initApp() {
   bots.map(bot => movementCycle(conn, bot.botID));
 }
 
-initApp();
+// initApp();
 
 const server = new ApolloServer({
   typeDefs: schema,
@@ -37,8 +37,8 @@ app.get("/", async (req, res) => {
   res.send("Cycle started");
 });
 
-httpServer.listen({ port: 8001 }, () => {
-  console.log("Apollo server at :8001, /graphql.");
+httpServer.listen(PORT, () => {
+  console.log(`Apollo server at ${PORT}, /graphql.`);
 });
 
 process.on("SIGINT", async () => {
